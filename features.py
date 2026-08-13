@@ -57,6 +57,27 @@ def fit_feature_stats(train_df: pd.DataFrame) -> dict:
     stats["enfants_median"] = train_df["enfants"].median()
     stats["demandes_speciales_median"] = train_df["demandes_speciales"].median()
 
+    # Bornes de plafonnement (capping) pour les valeurs aberrantes, calculées
+    # sur le train uniquement. On recalcule d'abord les colonnes brutes
+    # nécessaires (nuits/chambres et écart de prix) pour en tirer les quantiles,
+    # sans dépendre de prepare_data() afin d'éviter une dépendance circulaire.
+    ratio_tmp = train_df["nuits"] / train_df["chambres"].replace(0, np.nan)
+    ratio_tmp = ratio_tmp.fillna(train_df["nuits"])
+    stats["ratio_nuits_chambres_cap"] = ratio_tmp.quantile(0.99)
+
+    def _ecart_prix_tmp(row):
+        key = (row["region_hotel"], row["categorie_hotel"])
+        moyenne = stats["prix_moyenne_par_region_cat"].get(key, stats["prix_moyenne_globale"])
+        prix = row["prix_moyen_nuit_eur"]
+        if pd.isna(prix):
+            key2 = (row["region_hotel"], row["categorie_hotel"])
+            prix = stats["prix_median_par_region_cat"].get(key2, stats["prix_median_global"])
+        return prix - moyenne
+
+    ecart_tmp = train_df.apply(_ecart_prix_tmp, axis=1)
+    stats["ecart_prix_cap_low"] = ecart_tmp.quantile(0.01)
+    stats["ecart_prix_cap_high"] = ecart_tmp.quantile(0.99)
+
     return stats
 
 
@@ -106,6 +127,12 @@ def prepare_data(df: pd.DataFrame, stats: dict) -> pd.DataFrame:
     out["taille_groupe"] = out["adultes"] + out["enfants"]
     out["ratio_nuits_chambres"] = out["nuits"] / out["chambres"].replace(0, np.nan)
     out["ratio_nuits_chambres"] = out["ratio_nuits_chambres"].fillna(out["nuits"])
+    # Plafonnement (capping) : évite qu'une poignée de longs séjours en 1 chambre
+    # ne fassent basculer excessivement les coefficients de la baseline linéaire.
+    # Borne calculée sur train uniquement (voir fit_feature_stats).
+    out["ratio_nuits_chambres"] = out["ratio_nuits_chambres"].clip(
+        upper=stats["ratio_nuits_chambres_cap"]
+    )
 
     # -----------------------------------------------------------------
     # D. Prix — écart à la moyenne région/catégorie (calculée sur train)
@@ -116,6 +143,12 @@ def prepare_data(df: pd.DataFrame, stats: dict) -> pd.DataFrame:
         return row["prix_moyen_nuit_eur"] - moyenne
 
     out["ecart_prix_vs_moyenne_region"] = out.apply(_ecart_prix, axis=1)
+    # Plafonnement (capping) des deux côtés : quelques hôtels très haut de gamme
+    # créaient des écarts extrêmes (jusqu'à 633€) qui déstabiliseraient la
+    # baseline linéaire. Bornes calculées sur train uniquement.
+    out["ecart_prix_vs_moyenne_region"] = out["ecart_prix_vs_moyenne_region"].clip(
+        lower=stats["ecart_prix_cap_low"], upper=stats["ecart_prix_cap_high"]
+    )
 
     # -----------------------------------------------------------------
     # E. Commercial
