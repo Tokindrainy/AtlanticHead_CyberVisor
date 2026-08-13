@@ -139,7 +139,7 @@ Voici la liste des fichiers et liens importants permettant d’évaluer votre tr
 
 **🔗 Liens utiles :**
 
-- [**LIEN VERS LA VIDÉO DE PRÉSENTATION** — Google Drive]([https://www.youtube.com/](https://drive.google.com/file/d/1l1PfQZ79GLkJ7IlVqA_AshTqStiFy9Q2/view?usp=drive_link))
+- [**LIEN VERS LA VIDÉO DE PRÉSENTATION** — Google Drive ou YouTube]([https://www.youtube.com/](https://drive.google.com/file/d/1l1PfQZ79GLkJ7IlVqA_AshTqStiFy9Q2/view?usp=drive_link))
 - [Lien vers le dépôt GitHub](https://github.com/Tokindrainy/AtlanticHead_CyberVisor.git)
 
 
