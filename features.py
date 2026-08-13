@@ -169,6 +169,19 @@ def prepare_data(df: pd.DataFrame, stats: dict) -> pd.DataFrame:
     out["a_modifie_reservation"] = (out["modifications_reservation"] > 0).astype(int)
     out["a_attendu_liste"] = (out["jours_liste_attente"] > 0).astype(int)
 
+    # -----------------------------------------------------------------
+    # G. Dates — saisonnalité et délai avant l'arrivée
+    # -----------------------------------------------------------------
+    out["mois_arrivee"] = out["date_arrivee"].dt.month
+    out["jour_semaine_arrivee"] = out["date_arrivee"].dt.dayofweek  # 0=lundi, 6=dimanche
+
+    # delai_reservation_jours est déjà fourni brut dans le dataset ; on le
+    # regroupe en catégories interprétables, souvent plus robustes qu'une
+    # variable continue pour une baseline linéaire.
+    bins = [-1, 7, 30, 90, np.inf]
+    labels = ["derniere_minute", "court_terme", "moyen_terme", "long_terme"]
+    out["delai_categorise"] = pd.cut(out["delai_reservation_jours"], bins=bins, labels=labels)
+
     return out
 
 
