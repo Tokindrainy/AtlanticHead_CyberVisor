@@ -1,0 +1,30 @@
+{
+  "hyperparams": {
+    "n_estimators": 256,
+    "learning_rate": 0.014464020877451817,
+    "num_leaves": 36,
+    "max_depth": 4,
+    "min_child_samples": 59,
+    "subsample": 0.7004229904782565,
+    "colsample_bytree": 0.7724567389301411,
+    "reg_alpha": 0.0016742237510088004,
+    "reg_lambda": 0.13601246953903182,
+    "scale_pos_weight": 3.6629470290120234
+  },
+  "threshold": 0.51,
+  "categorical_features": [
+    "region_hotel",
+    "ville",
+    "type_destination",
+    "segment_client",
+    "marche_origine",
+    "canal_reservation",
+    "moyen_transport",
+    "formule_repas",
+    "tarif_remboursable",
+    "type_acompte",
+    "client_type",
+    "acompte_x_remboursable",
+    "delai_categorise"
+  ]
+}
